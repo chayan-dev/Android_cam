@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+  xmlns:tools="http://schemas.android.com/tools"
+  android:layout_width="match_parent"
+  android:layout_height="match_parent"
+  xmlns:app="http://schemas.android.com/apk/res-auto"
+  tools:context=".PreviewFragment">
+
+  <ImageView
+    android:id="@+id/preview_iv"
+    android:layout_width="0dp"
+    android:layout_height="0dp"
+    android:src="@drawable/img"
+    android:layout_marginBottom="20dp"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintTop_toTopOf="parent"
+    app:layout_constraintEnd_toStartOf="@id/preview_img_rv"
+    app:layout_constraintBottom_toTopOf="@id/upload_btn"
+    />
+
+  <androidx.recyclerview.widget.RecyclerView
+    android:id="@+id/preview_img_rv"
+    android:layout_width="70dp"
+    android:layout_height="match_parent"
+    app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+    app:layout_constraintEnd_toEndOf="parent"
+    app:layout_constraintTop_toTopOf="parent"
+    app:layout_constraintBottom_toBottomOf="parent"
+    tools:listitem="@layout/item_preview_img" />
+
+  <ImageView
+    android:id="@+id/upload_btn"
+    android:layout_width="40dp"
+    android:layout_height="40dp"
+    android:layout_margin="25dp"
+    android:src="@drawable/baseline_arrow_upward_24"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintBottom_toBottomOf="parent"
+    />
+
+  <ImageView
+    android:id="@+id/delete_btn"
+    android:layout_width="40dp"
+    android:layout_height="40dp"
+    android:layout_margin="25dp"
+    android:src="@drawable/baseline_delete_24"
+    app:layout_constraintStart_toEndOf="@id/upload_btn"
+    app:layout_constraintBottom_toBottomOf="parent"
+    />
+
+  <ImageView
+    android:id="@+id/exit_btn"
+    android:layout_width="30dp"
+    android:layout_height="30dp"
+    android:layout_margin="15dp"
+    android:src="@drawable/baseline_close_24"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintTop_toTopOf="parent"
+    />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+  xmlns:app="http://schemas.android.com/apk/res-auto"
+  xmlns:tools="http://schemas.android.com/tools"
+  android:id="@+id/nav_graph"
+  app:startDestination="@id/cameraHomeFragment">
+
+  <fragment
+    android:id="@+id/previewFragment"
+    android:name="com.shelfwatch_cam.PreviewFragment"
+    android:label="fragment_preview"
+    tools:layout="@layout/fragment_preview" >
+  </fragment>
+
+  <fragment
+    android:id="@+id/cameraHomeFragment"
+    android:name="com.shelfwatch_cam.CameraHomeFragment"
+    android:label="CameraHomeFragment" >
+    <action
+      android:id="@+id/action_cameraHomeFragment_to_previewFragment"
+      app:destination="@id/previewFragment" />
+  </fragment>
+</navigation>
