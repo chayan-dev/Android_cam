@@ -11,7 +11,9 @@
   },
   "dependencies": {
     "react": "18.2.0",
-    "react-native": "0.71.3"
+    "react-native": "0.71.3",
+    "react-native-fs": "^2.20.0",
+    "react-native-image-resizer": "^1.4.5"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
