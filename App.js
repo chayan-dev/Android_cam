@@ -1,6 +1,12 @@
 import React from 'react';
 import {View, Button, NativeModules, NativeEventEmitter} from 'react-native';
-import { onCaptureHandler, onDismissPressHandler, onDirectionPressHandler, onDiscardImageHandler, onSubmitBarcodeImageHandler } from './sdkCam';
+import {
+  onCaptureHandler,
+  onDismissPressHandler,
+  onDirectionPressHandler,
+  onDiscardImageHandler,
+  onSubmitBarcodeImageHandler,
+} from './sdkCam';
 class App extends React.Component {
   componentDidMount() {
     this._addListenersForNativeCamSDK();
@@ -12,12 +18,12 @@ class App extends React.Component {
     this.eventCaptureListener?.remove();
   }
 
-   _addListenersForNativeCamSDK = () => {
+  _addListenersForNativeCamSDK = () => {
     const eventEmitter = new NativeEventEmitter(NativeModules.Bridge);
     this.eventCaptureListener = eventEmitter.addListener(
       'CaptureEvent',
       ({state, image_base64}) => {
-        console.log('683');
+        console.log('683', state, image_base64);
         onCaptureHandler(state, image_base64);
       },
     );
@@ -43,7 +49,7 @@ class App extends React.Component {
     this.eventSubmitListener = eventEmitter.addListener(
       'SubmitImageEvent',
       ({state, results, mode, upload_params}) => {
-        return
+        return;
         // upload_params = JSON.parse(upload_params);
         // console.log(
         //   '711: data received on submit',
