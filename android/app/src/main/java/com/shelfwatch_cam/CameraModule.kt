@@ -4,11 +4,15 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.util.Log
 import android.widget.Toast
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.facebook.react.bridge.*
 import com.facebook.react.modules.core.DeviceEventManagerModule
 import com.facebook.react.modules.core.DeviceEventManagerModule.RCTDeviceEventEmitter
+import com.google.gson.Gson
+import com.shelfwatch_cam.utils.MapUtil
+import org.json.JSONObject
 
 class CameraModule(reactContext: ReactApplicationContext): ReactContextBaseJavaModule(reactContext) {
 
@@ -28,9 +32,16 @@ class CameraModule(reactContext: ReactApplicationContext): ReactContextBaseJavaM
 
   inner class LocalBroadcastReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context?, intent: Intent) {
-      val someData = intent.getStringExtra("my-extra-data")
+      val stateMap = intent.getSerializableExtra("dataMap") as HashMap<String,Any>
+      Log.d("cam_mod: ", stateMap.toString())
+      val gson = Gson()
+      val response = gson.toJson(stateMap)
+      val returnMap = MapUtil.convertJsonToMap(JSONObject(response))
+//      Log.d("cam_mod1: ", someData?.size.toString())
+//      val param = Arguments.createMap()
+//      param.putMap(someData)
       rContext.getJSModule(RCTDeviceEventEmitter::class.java)
-        .emit("JS-Event", someData)
+        .emit("JS-Event", returnMap)
     }
   }
 

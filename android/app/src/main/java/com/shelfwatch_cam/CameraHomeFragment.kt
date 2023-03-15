@@ -9,6 +9,8 @@ import android.graphics.BitmapFactory
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
+import android.util.Base64.DEFAULT
+import android.util.Base64.encodeToString
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -25,6 +27,7 @@ import androidx.navigation.fragment.findNavController
 import com.shelfwatch_cam.databinding.FragmentCameraHomeBinding
 import com.shelfwatch_cam.utils.loadImage
 import kotlinx.coroutines.launch
+import java.io.ByteArrayOutputStream
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.ExecutorService
@@ -37,12 +40,12 @@ class CameraHomeFragment : Fragment() {
   val viewModel : CameraViewModel by activityViewModels()
   private var imageCapture: ImageCapture? = null
   private lateinit var cameraExecutor: ExecutorService
+  val imageCapturedList = mutableListOf<String>()
 
   override fun onCreateView(
     inflater: LayoutInflater, container: ViewGroup?,
     savedInstanceState: Bundle?
   ): View? {
-    // Inflate the layout for this fragment
 
     viewBinding = FragmentCameraHomeBinding.inflate(inflater, container, false)
     return viewBinding?.root
@@ -51,9 +54,6 @@ class CameraHomeFragment : Fragment() {
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
     super.onViewCreated(view, savedInstanceState)
 
-
-
-//    val EmitterObj = Emitter(ReactApplicationContext(requireContext()))
 
     lifecycleScope.launch {
         viewModel.uiState.collect {
@@ -94,9 +94,9 @@ class CameraHomeFragment : Fragment() {
         Log.d("btn", "clicked1")
 //      EmitterObj.emitEventAndIncrement()
 
-        val customEvent = Intent("my-custom-event")
-        customEvent.putExtra("my-extra-data", "that's it")
-        context?.let { it1 -> LocalBroadcastManager.getInstance(it1) }?.sendBroadcast(customEvent)
+//        val customEvent = Intent("my-custom-event")
+//        customEvent.putExtra("my-extra-data", "that's it")
+//        context?.let { it1 -> LocalBroadcastManager.getInstance(it1) }?.sendBroadcast(customEvent)
 
         Log.d("btn", "clicked2")
       }
@@ -104,7 +104,9 @@ class CameraHomeFragment : Fragment() {
     }
 
     viewBinding?.previewBtn?.setOnClickListener {
-      findNavController().navigate(R.id.action_cameraHomeFragment_to_previewFragment)
+      context?.let { it -> viewModel.broadcast(it) }
+
+//      findNavController().navigate(R.id.action_cameraHomeFragment_to_previewFragment)
     }
 
     cameraExecutor = Executors.newSingleThreadExecutor()
@@ -164,7 +166,17 @@ class CameraHomeFragment : Fragment() {
           super.onCaptureSuccess(image)
           Log.d("format", "${image.format}")
           Log.d("image: ", image.toString())
-          viewBinding?.capturedImg?.setImageBitmap(image.convertImageProxyToBitmap())
+          //call vm method that will convert ot base64 and save it in a live data variable
+          // let's suppose we have to send event on clicking btn, clik btn in frag that will call a vm fun that will broadcast the live data
+//          viewBinding?.capturedImg?.setImageBitmap(image.convertImageProxyToBitmap())
+//          val bm = image.convertImageProxyToBitmap()
+//          val baos = ByteArrayOutputStream()
+//          bm.compress(Bitmap.CompressFormat.PNG, 100, baos)
+//          val bArray = baos.toByteArray()
+//          val base64Img = encodeToString(bArray, DEFAULT)
+//          imageCapturedList.add(base64Img)
+          viewModel.handleClickedImage(image)
+//          Log.d("imgList2: ",imageCapturedList.size.toString())
           image.close()
         }
 

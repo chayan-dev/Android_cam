@@ -200,7 +200,10 @@ dependencies {
     implementation "com.github.lisawray.groupie:groupie:2.10.1"
     implementation "com.github.lisawray.groupie:groupie-databinding:2.10.1"
 
+    implementation 'com.google.code.gson:gson:2.10.1'
+
 }
 
 apply from: file("../../node_modules/@react-native-community/cli-platform-android/native_modules.gradle")
 apply plugin: 'org.jetbrains.kotlin.android'; applyNativeModulesAppBuildGradle(project)
+

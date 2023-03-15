@@ -16,8 +16,8 @@ class App extends React.Component {
     const eventEmitter = new NativeEventEmitter();
     this.eventCaptureListener = eventEmitter.addListener(
       "JS-Event",
-      nativeData => {
-        console.log({nativeData});
+      ({state }) => {
+        console.log({state});
       },
     );
   };
