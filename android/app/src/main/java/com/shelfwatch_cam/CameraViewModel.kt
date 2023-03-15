@@ -30,7 +30,12 @@ class CameraViewModel : ViewModel()  {
   "previewList" to arrayListOf<String>()
   )
 
-  val sendingData = hashMapOf<String,Any>( "state" to defaultData, "image_base64" to "abcd")
+  var mDefaultData = hashMapOf<String, Any>("isAutomatic" to false, "left" to "", "right" to "",
+    "top" to "", "direction" to "", "nextStep" to "", "stepsTaken" to arrayListOf<String>(),
+    "previewList" to arrayListOf<String>()
+  )
+
+  var sendingData = hashMapOf<String,Any>( "state" to mDefaultData, "image_base64" to "abcd")
 
   //business logic
   fun updateUiState(){
@@ -43,9 +48,17 @@ class CameraViewModel : ViewModel()  {
     bm.compress(Bitmap.CompressFormat.PNG, 100, baos)
     val bArray = baos.toByteArray()
     val base64Img = Base64.encodeToString(bArray, Base64.DEFAULT)
+
+    updateSendingData(base64Img)
+
     currentImageList.add(base64Img)
     imageCapturedList.value = currentImageList
     Log.d("imgList1: ",currentImageList.size.toString())
+  }
+
+  fun updateSendingData(base64_img: String){
+    sendingData["image_base64"] = "base64_img"
+
   }
 
   fun broadcast(context: Context){
