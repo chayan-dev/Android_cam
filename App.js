@@ -23,7 +23,7 @@ class App extends React.Component {
     this.eventCaptureListener = eventEmitter.addListener(
       'JS-Event',
       ({state, image_base64}) => {
-        console.log('683', state, image_base64);
+        // console.log('683', state, image_base64);
         onCaptureHandler(state, image_base64);
       },
     );

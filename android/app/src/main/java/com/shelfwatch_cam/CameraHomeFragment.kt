@@ -1,8 +1,7 @@
 package com.shelfwatch_cam
 
 import android.Manifest
-import android.content.ContentValues
-import android.content.Intent
+import android.content.*
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -18,20 +17,24 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.navigation.fragment.findNavController
+import com.google.gson.Gson
 import com.shelfwatch_cam.databinding.FragmentCameraHomeBinding
 import com.shelfwatch_cam.utils.loadImage
 import kotlinx.coroutines.launch
+import org.json.JSONObject
 import java.io.ByteArrayOutputStream
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import kotlin.math.log
 
 
 class CameraHomeFragment : Fragment() {
@@ -41,6 +44,12 @@ class CameraHomeFragment : Fragment() {
   private var imageCapture: ImageCapture? = null
   private lateinit var cameraExecutor: ExecutorService
   val imageCapturedList = mutableListOf<String>()
+  private lateinit var mLocalBroadcastReceiver: LocalBroadcastReceiver
+
+  init {
+    mLocalBroadcastReceiver = LocalBroadcastReceiver()
+
+  }
 
   override fun onCreateView(
     inflater: LayoutInflater, container: ViewGroup?,
@@ -54,25 +63,89 @@ class CameraHomeFragment : Fragment() {
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
     super.onViewCreated(view, savedInstanceState)
 
+    val localBroadcastManager = LocalBroadcastManager.getInstance(requireContext())
+    localBroadcastManager.registerReceiver(
+      mLocalBroadcastReceiver,
+      IntentFilter("dispatch-event")
+    )
+
+    updateGuidelineConstraints(0.2.toFloat())
+
 
     lifecycleScope.launch {
         viewModel.uiState.collect {
 
-          if(it.left.isNotBlank()){
+          Log.d("state_livedata_fragment:", "leftArrow: ${it.showLeftArrow}, rightArraow: ${it.showRightArrow}, downArrow: ${it.showDownArrow}, All: ${it.showArrowAllDirection}")
+
+
+
+          //arrows
+//          if( it.showLeftArrow ){
+//            viewBinding?.leftArrowIv?.visibility = View.VISIBLE
+//            viewBinding?.leftArrowIv?.isEnabled = false
+//            viewBinding?.leftArrowIv?.setImageResource(R.drawable.img_9)
+//          }else viewBinding?.leftArrowIv?.visibility = View.INVISIBLE
+//
+//          if( it.showRightArrow || it.showArrowAllDirection){
+//            viewBinding?.rightArrowIv?.visibility = View.VISIBLE
+//          }else viewBinding?.rightArrowIv?.visibility = View.INVISIBLE
+//
+//          if( it.showDownArrow || it.showArrowAllDirection){
+//            viewBinding?.downArrowIv?.visibility = View.VISIBLE
+//          }else viewBinding?.downArrowIv?.visibility = View.INVISIBLE
+
+          if(it.showArrowAllDirection){
+            //make them visible
+            viewBinding?.let { binding ->
+              binding.leftArrowIv.visibility = View.VISIBLE
+              binding.downArrowIv.visibility = View.VISIBLE
+              binding.rightArrowIv.visibility = View.VISIBLE
+            }
+          }
+          else{
+            //make it direction img invisible
+//            viewBinding?.let { binding ->
+//              binding.leftArrowIv.visibility = View.INVISIBLE
+//              binding.downArrowIv.visibility = View.INVISIBLE
+//              binding.rightArrowIv.visibility = View.INVISIBLE
+//            }
+
+            if( it.showLeftArrow ){
+              viewBinding?.leftArrowIv?.visibility = View.VISIBLE
+              viewBinding?.leftArrowIv?.isEnabled = false
+              viewBinding?.leftArrowIv?.setImageResource(R.drawable.img_9)
+            }else viewBinding?.leftArrowIv?.visibility = View.INVISIBLE
+
+            if( it.showRightArrow ){
+              viewBinding?.rightArrowIv?.visibility = View.VISIBLE
+              viewBinding?.rightArrowIv?.isEnabled = false
+              viewBinding?.rightArrowIv?.setImageResource(R.drawable.img_10)
+            }else viewBinding?.rightArrowIv?.visibility = View.INVISIBLE
+
+            if( it.showDownArrow ){
+              viewBinding?.downArrowIv?.visibility = View.VISIBLE
+              viewBinding?.downArrowIv?.isEnabled = false
+              viewBinding?.downArrowIv?.setImageResource(R.drawable.img_11)
+            }else viewBinding?.downArrowIv?.visibility = View.INVISIBLE
+          }
+
+          //images
+          if(it.leftOverlayImage != null){
             viewBinding?.capturedImgLeft?.visibility = View.VISIBLE
-            viewBinding?.capturedImgLeft?.loadImage(it.left)
+            viewBinding?.capturedImgLeft?.setImageBitmap(it.leftOverlayImage)
           }
           else viewBinding?.capturedImgLeft?.visibility = View.INVISIBLE
 
-          if(it.right.isNotBlank()){
+          if(it.rightOverlayImage != null){
             viewBinding?.capturedImgRight?.visibility = View.VISIBLE
-            viewBinding?.capturedImgRight?.loadImage(it.right)
+            viewBinding?.capturedImgRight?.setImageBitmap(it.rightOverlayImage)
           }
           else viewBinding?.capturedImgRight?.visibility = View.INVISIBLE
 
-          if(it.top.isNotBlank()){
+          if(it.topOverlayImage != null){
+            Log.d("top overlay image","exist")
             viewBinding?.capturedImgTop?.visibility = View.VISIBLE
-            viewBinding?.capturedImgTop?.loadImage(it.top)
+            viewBinding?.capturedImgTop?.setImageBitmap(it.topOverlayImage)
           }
           else viewBinding?.capturedImgTop?.visibility = View.INVISIBLE
         }
@@ -104,9 +177,21 @@ class CameraHomeFragment : Fragment() {
     }
 
     viewBinding?.previewBtn?.setOnClickListener {
-      context?.let { it -> viewModel.broadcast(it) }
+//      context?.let { it -> viewModel.broadcast(it) }
 
-//      findNavController().navigate(R.id.action_cameraHomeFragment_to_previewFragment)
+      findNavController().navigate(R.id.action_cameraHomeFragment_to_previewFragment)
+    }
+
+    viewBinding?.leftArrowIv?.setOnClickListener {
+      context?.let { it1 -> viewModel.leftArrowClicked(it1) }
+    }
+
+    viewBinding?.rightArrowIv?.setOnClickListener {
+      context?.let { it1 -> viewModel.rightArrowClicked(it1) }
+    }
+
+    viewBinding?.downArrowIv?.setOnClickListener {
+      context?.let { it1 -> viewModel.bottomArrowClicked(it1) }
     }
 
     cameraExecutor = Executors.newSingleThreadExecutor()
@@ -168,14 +253,16 @@ class CameraHomeFragment : Fragment() {
           Log.d("image: ", image.toString())
           //call vm method that will convert ot base64 and save it in a live data variable
           // let's suppose we have to send event on clicking btn, clik btn in frag that will call a vm fun that will broadcast the live data
-//          viewBinding?.capturedImg?.setImageBitmap(image.convertImageProxyToBitmap())
+
+//          viewBinding?.capturedImgLeft?.setImageBitmap(image.convertImageProxyToBitmap())
+
 //          val bm = image.convertImageProxyToBitmap()
 //          val baos = ByteArrayOutputStream()
 //          bm.compress(Bitmap.CompressFormat.PNG, 100, baos)
 //          val bArray = baos.toByteArray()
 //          val base64Img = encodeToString(bArray, DEFAULT)
 //          imageCapturedList.add(base64Img)
-          viewModel.handleClickedImage(image)
+          context?.let { viewModel.handleClickedImage(image, it) }
 //          Log.d("imgList2: ",imageCapturedList.size.toString())
           image.close()
         }
@@ -196,13 +283,13 @@ class CameraHomeFragment : Fragment() {
       val cameraProvider: ProcessCameraProvider = cameraProviderFuture.get()
 
       // Preview
-      val preview = Preview.Builder()
+      val preview = Preview.Builder().setTargetAspectRatio(AspectRatio.RATIO_16_9)
         .build()
         .also {
           it.setSurfaceProvider(viewBinding?.viewFinder?.surfaceProvider)
         }
 
-      imageCapture = ImageCapture.Builder()
+      imageCapture = ImageCapture.Builder().setTargetAspectRatio(AspectRatio.RATIO_16_9)
         .build()
 
       // Select back camera as a default
@@ -250,6 +337,12 @@ class CameraHomeFragment : Fragment() {
     ) == PackageManager.PERMISSION_GRANTED
   }
 
+  private fun updateGuidelineConstraints(percent: Float){
+    val constParam = viewBinding?.leftGuideline?.layoutParams as ConstraintLayout.LayoutParams
+    constParam.guidePercent = percent
+    viewBinding?.leftGuideline?.layoutParams = constParam
+  }
+
   override fun onDestroy() {
     super.onDestroy()
     cameraExecutor.shutdown()
@@ -259,7 +352,7 @@ class CameraHomeFragment : Fragment() {
     private const val TAG = "CameraXApp"
     private const val FILENAME_FORMAT = "yyyy-MM-dd-HH-mm-ss-SSS"
     private const val REQUEST_CODE_PERMISSIONS = 10
-    val REQUIRED_PERMISSIONS = arrayOf(Manifest.permission.CAMERA)
+    val REQUIRED_PERMISSIONS = arrayOf(Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE)
   }
 
   fun ImageProxy.convertImageProxyToBitmap(): Bitmap {
@@ -268,6 +361,24 @@ class CameraHomeFragment : Fragment() {
     val bytes = ByteArray(buffer.capacity())
     buffer.get(bytes)
     return BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+  }
+
+  inner class LocalBroadcastReceiver : BroadcastReceiver() {
+    override fun onReceive(context: Context?, intent: Intent) {
+      val stateMap = intent.getStringExtra("dataMap")
+//      Log.d("cam_mod: ", stateMap.toString())
+//      val gson = Gson()
+//      val response = gson.toJson(stateMap)
+//      val dataMap = MapUtil.convertJsonToMap(JSONObject(response))
+      if (stateMap != null) {
+        viewModel.dataFromDispatchEvent(stateMap)
+      }
+//      Log.d("cam_mod1: ", someData?.size.toString())
+//      val param = Arguments.createMap()
+//      param.putMap(someData)
+//      rContext.getJSModule(RCTDeviceEventEmitter::class.java)
+//        .emit("JS-Event", dataMap)
+    }
   }
 }
 

@@ -3,6 +3,7 @@ import ImageResizer from 'react-native-image-resizer';
 import {NativeModules} from 'react-native';
 
 export const onCaptureHandler = async (state, image_base64) => {
+  // NativeModules.CameraModule.sendtoNative("hi1");
   console.log(
     '****  Receiving capture event data',
     JSON.stringify(state, null, 1),
@@ -39,6 +40,7 @@ export const onCaptureHandler = async (state, image_base64) => {
     '742: dispatching capture data',
     JSON.stringify(updatedState, null, 1),
   );
+  // NativeModules.CameraModule.sendtoNative("hi1");
 
   dispatchToNativeSDK(updatedState);
 };
@@ -67,8 +69,9 @@ export const onDiscardImageHandler = state => {
 
   const removedImage = data.pop();
   console.log({removedImage});
-  RNFS.unlink(removedImage.filepath);
-  RNFS.unlink(removedImage.thumbnail);
+  //TODO: uncomment later
+  // RNFS.unlink(removedImage.filepath);
+  // RNFS.unlink(removedImage.thumbnail);
 
   let sT = [...state.stepsTaken];
   sT.pop();
@@ -234,7 +237,11 @@ const dispatchToNativeSDK = data => {
   NativeModules.CameraModule.dispatchDataToNativeSide(JSON.stringify(data));
 };
 
+
+
 const base64ToJpg = async base64Image => {
+  return {filepath: "", thumbnail: ""};
+
   const random_uuid = uuid.v4();
   const filename = `${random_uuid}`;
 
@@ -245,6 +252,7 @@ const base64ToJpg = async base64Image => {
   const path = dirPictures + `${filename}.jpg`;
   //const path_thumbnail = RNFS.DocumentDirectoryPath + `/${filename}_thumbnail.jpg`;
   await RNFS.mkdir(dirPictures);
+  console.log(base64Image.substring(0,20))
   await RNFS.writeFile(path, base64Image, 'base64');
   const thumbnail = await ImageResizer.createResizedImage(
     path,

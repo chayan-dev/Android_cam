@@ -8,9 +8,9 @@ import android.util.Log
 import android.widget.Toast
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.facebook.react.bridge.*
-import com.facebook.react.modules.core.DeviceEventManagerModule
 import com.facebook.react.modules.core.DeviceEventManagerModule.RCTDeviceEventEmitter
 import com.google.gson.Gson
+import com.google.gson.JsonObject
 import com.shelfwatch_cam.utils.MapUtil
 import org.json.JSONObject
 
@@ -32,16 +32,20 @@ class CameraModule(reactContext: ReactApplicationContext): ReactContextBaseJavaM
 
   inner class LocalBroadcastReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context?, intent: Intent) {
-      val stateMap = intent.getSerializableExtra("dataMap") as HashMap<String,Any>
+      val stateMap = intent.getSerializableExtra("dataMap") as Map<String,Any>
+      val eventName = intent.getStringExtra("event_name")
       Log.d("cam_mod: ", stateMap.toString())
       val gson = Gson()
       val response = gson.toJson(stateMap)
-      val returnMap = MapUtil.convertJsonToMap(JSONObject(response))
-//      Log.d("cam_mod1: ", someData?.size.toString())
+      val dataMap = MapUtil.convertJsonToMap(JSONObject(response))
+      Log.d("cam_mod1: ", eventName.toString())
 //      val param = Arguments.createMap()
 //      param.putMap(someData)
-      rContext.getJSModule(RCTDeviceEventEmitter::class.java)
-        .emit("JS-Event", returnMap)
+      if(eventName != null){
+      emitEvent(eventName, dataMap)
+    }
+//      rContext.getJSModule(RCTDeviceEventEmitter::class.java)
+//        .emit("JS-Event", dataMap)
     }
   }
 
@@ -62,9 +66,28 @@ class CameraModule(reactContext: ReactApplicationContext): ReactContextBaseJavaM
     }
   }
 
-  fun emitEvent() {
-    rContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
-      .emit("eventName", "params")
+  @ReactMethod
+  fun dispatchDataToNativeSide(data: String){
+    currentActivity?.applicationContext?.let { broadcastDispatchEvent(it, data) }
+    Log.d("Data_to_kotlin",data.toString())
   }
+
+  @ReactMethod
+  fun sendtoNative(data: String){
+    Log.d("Data_in_kotlin",data.toString())
+  }
+
+  fun emitEvent(eventName: String, param: Any) {
+    rContext.getJSModule(RCTDeviceEventEmitter::class.java)
+      .emit(eventName, param)
+  }
+
+  private fun broadcastDispatchEvent(context: Context, param: String){
+    val customEvent = Intent("dispatch-event")
+    customEvent.putExtra("dataMap", param)
+    context.let { it1 -> LocalBroadcastManager.getInstance(it1) }.sendBroadcast(customEvent)
+  }
+
+
 
 }

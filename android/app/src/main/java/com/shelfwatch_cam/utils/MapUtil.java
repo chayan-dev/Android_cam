@@ -42,6 +42,7 @@ import org.json.JSONException;
 
 public class MapUtil {
 
+
     public static WritableMap convertJsonToMap(JSONObject jsonObject) throws JSONException {
         WritableMap map = new WritableNativeMap();
 
